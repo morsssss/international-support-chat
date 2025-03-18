@@ -2,6 +2,8 @@
 import { useState } from 'react';
 import './page.css';
 
+const agentLanguage = 'en-US';
+
 const languagesMap = [
   ['BG', 'Bulgarian (BG)'],
   ['ZH', 'Chinese Simplified (ZH)'],
@@ -36,6 +38,13 @@ const languagesMap = [
   ['UK', 'Ukrainian (UK)']
 ];
 
+async function getTranslation(text, targetLanguage) {
+  const url = `/api/translate?text=${text}&target_lang=${targetLanguage}`;
+  const response = await fetch(url);
+  const data = await response.json();
+  return data;
+}
+
 export default function Page() {
   const [customerMessages, setCustomerMessages] = useState([]);
   const [agentMessages, setAgentMessages] = useState([]);
@@ -44,15 +53,18 @@ export default function Page() {
  * In the customer screen: if it's from the agent, prepend "Agent: ". Otherwise, prepend "Me: ".
  * In the agent screen: if it's from the agent, prepend "Me: ". Otherwise, translate the message and prepend "Customer".
  */
-  function sendMessage(sender, message) {
+  async function sendMessage(sender, message) {
     // Do the customer screen
-    let label = sender == 'Customer' ? '<span color="blue">Me:</span>' : 'Agent:';
-    let newMessage = label + " " + message;
+  //  let label = sender == 'Customer' ? '<span color="blue">Me:</span>' : 'Agent:';
+    let label = sender == 'Customer' ? 'Me' : 'Agent';
+    let newMessage = label + ": " + message;
     setCustomerMessages(prevMessages => [...prevMessages, newMessage]);
 
     // Do the agent screen
-    label = sender == 'Agent' ? '<span color="red">Me:</span>' : 'Customer:';
-    newMessage = label + " " + message;
+//    label = sender == 'Agent' ? '<span color="red">Me:</span>' : 'Customer:';
+    const translatedText = await getTranslation(message, agentLanguage);
+    label = sender == 'Agent' ? 'Me' : 'Customer';
+    newMessage = label + ": " + message;
     setAgentMessages(prevMessages => [...prevMessages, newMessage]);
   }
 
@@ -93,8 +105,9 @@ function CustomerScreen({ messages, sendMessage }) {
 }
 
 function AgentScreen({ messages, sendMessage }) {
+  const {detectedLanguage, setDetectedLanguage} = useState('en-US');
   const topAreaContent = (
-    <p>Detected language: foo</p>
+    <p>Detected language: {detectedLanguage}</p>
   );
 
   return (
@@ -151,7 +164,7 @@ function ChatScreen({ name, topAreaContent, bottomAreaContent, buttonText, messa
 function LanguagesSelect() {
   const options = languagesMap.map(
     ([code, name]) => 
-      <option value="{code}">{name}</option>
+      <option key={code} value={code}>{name}</option>
   );
   return (
     <select>
