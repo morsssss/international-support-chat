@@ -2,8 +2,8 @@
 import { useState } from 'react';
 import './page.css';
 
-const agentLangCode = 'en-US';
-const defaultLangCode = 'en-US';
+const agentLangCode = 'EN-US';
+const defaultLangCode = 'EN-US';
 
 const languagesMap = new Map ([
   ['BG', 'Bulgarian'],
