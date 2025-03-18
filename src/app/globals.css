@@ -28,21 +28,44 @@ h2 {
 button {
   border-radius: 20px;
   font-size: 24px;
+  align-self: flex-end;
   font-family: Roboto, sans-serif;
   font-weight: 400;
   padding: 13px 16px 14px;
   line-height: 18px;
-  background-color: lightblue;
+  background-color: #add8e6;
+  transition: color .15s ease-in-out,background-color .15s ease-in-out,border-color .15s ease-in-out,box-shadow .15s ease-in-out;
+}
+
+button:hover {
+  color: #eee;
+  background-color: #7da8e6;
+  border-color: #0a58ca;
+}
+
+button:active {
+  color: #fff;
+  background-color: #5d88c6;
+  border-color: #0a58ca;
 }
 
 select {
   height: 40px;
   font-size: 18px;
   font-family: Roboto, sans-serif;
+  border-radius: 12px;
   padding: 6px;
 }
 
 input {
   font-size: 18px;
   font-family: Roboto, sans-serif;
+}
+
+.align-left {
+  text-align: left;
+}
+
+.align-right {
+  text-align: right;
 }

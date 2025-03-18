@@ -149,8 +149,10 @@ function ChatScreen({ name, topAreaContent, bottomAreaContent, buttonText, messa
 
   function handleSubmit(e) {
     e.preventDefault();
-    sendMessage(name, message);
-    setMessage('');
+    if (message) {
+      sendMessage(name, message);
+      setMessage('');
+    }
   }
 
   return (

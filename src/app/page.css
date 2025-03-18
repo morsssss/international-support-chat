@@ -1,6 +1,7 @@
 .main {
   display: flex;
-  max-width: 100vw;
+  max-width: 1600px;
+  margin: 0 auto;
   overflow-x: hidden;
 }
 
@@ -40,10 +41,20 @@
   background: #cbc6ef;
 }
 
+.messages > li:nth-child(even) {
+  text-align: right;
+}
+
 .topArea {
   font-weight: 600;
   font-size: 22px;
   text-align: center;
+}
+
+.bottomArea {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
 #customerChat > li {
