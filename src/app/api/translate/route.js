@@ -7,7 +7,7 @@ import * as deepl from 'deepl-node';
  * 
  * Returns:
  *   text - translated text
- *   source_lang_code - code for detected language
+ *   source_lang - code for detected language
  * 
  */
 
@@ -22,6 +22,6 @@ export async function GET (request) {
   let response = new Response;
   return Response.json({
     text: result.text,
-    source_lang_code: result.detectedSourceLanguage
+    source_lang: result.detectedSourceLang
   });
 }

@@ -2,44 +2,45 @@
 import { useState } from 'react';
 import './page.css';
 
-const agentLanguage = 'en-US';
+const agentLangCode = 'en-US';
+const defaultLangCode = 'en-US';
 
-const languagesMap = [
-  ['BG', 'Bulgarian (BG)'],
-  ['ZH', 'Chinese Simplified (ZH)'],
-  ['CS', 'Czech (CS)'],
-  ['DA', 'Danish (DA)'],
-  ['en-GB', 'English British (en-GB)'],
-  ['en-US', 'English American (en-US)'],
-  ['ET', 'Estonian (ET)'],
-  ['FI', 'Finnish (FI)'],
-  ['fr', 'French (FR)'],
-  ['de', 'German (DE)'],
-  ['EL', 'Greek (EL)'],
-  ['HU', 'Hungarian (HU)'],
-  ['ID', 'Indonesian (ID)'],
-  ['IT', 'Italian (IT)'],
-  ['JA', 'Japanese (JA)'],
-  ['KO', 'Korean (KO)'],
-  ['LT', 'Lithuanian (LT)'],
-  ['LV', 'Latvian (LV)'],
-  ['NB', 'Norwegian (NB)'],
-  ['NL', 'Dutch (NL)'],
-  ['PL', 'Polish (PL)'],
-  ['pt-PT', 'Portuguese European (PT-PT)'],
-  ['pt-BR', 'Portuguese Brazilian (PT-BR)'],
-  ['RO', 'Romanian (RO)'],
-  ['RU', 'Russian (RU)'],
-  ['SK', 'Slovak (SK)'],
-  ['SL', 'Slovenian (SL)'],
-  ['es', 'Spanish (ES)'],
-  ['SV', 'Swedish (SV)'],
-  ['TR', 'Turkish (TR)'],
-  ['UK', 'Ukrainian (UK)']
-];
+const languagesMap = new Map ([
+  ['BG', 'Bulgarian'],
+  ['ZH', 'Chinese Simplified'],
+  ['CS', 'Czech'],
+  ['DA', 'Danish'],
+  ['en-GB', 'English (British)'],
+  ['en-US', 'English (American)'],
+  ['ET', 'Estonian'],
+  ['FI', 'Finnish'],
+  ['fr', 'French'],
+  ['de', 'German'],
+  ['EL', 'Greek'],
+  ['HU', 'Hungarian'],
+  ['ID', 'Indonesian'],
+  ['IT', 'Italian'],
+  ['JA', 'Japanese'],
+  ['KO', 'Korean'],
+  ['LT', 'Lithuanian'],
+  ['LV', 'Latvian'],
+  ['NB', 'Norwegian'],
+  ['NL', 'Dutch'],
+  ['PL', 'Polish'],
+  ['pt-PT', 'Portuguese (European)'],
+  ['pt-BR', 'Portuguese (Brazilian)'],
+  ['RO', 'Romanian'],
+  ['RU', 'Russian'],
+  ['SK', 'Slovak'],
+  ['SL', 'Slovenian'],
+  ['es', 'Spanish'],
+  ['SV', 'Swedish'],
+  ['TR', 'Turkish'],
+  ['UK', 'Ukrainian']
+]);
 
-async function getTranslation(text, targetLanguage) {
-  const url = `/api/translate?text=${text}&target_lang=${targetLanguage}`;
+async function getTranslation(text, targetLangCode) {
+  const url = `/api/translate?text=${text}&target_lang=${targetLangCode}`;
   const response = await fetch(url);
   const data = await response.json();
   return data;
@@ -48,23 +49,45 @@ async function getTranslation(text, targetLanguage) {
 export default function Page() {
   const [customerMessages, setCustomerMessages] = useState([]);
   const [agentMessages, setAgentMessages] = useState([]);
+  const [customerLangCode, setCustomerLangCode] = useState(defaultLangCode);
+  const [selectedLangCode, setSelectedLangCode] = useState(defaultLangCode);
 
 /* Put every message in both screens.
- * In the customer screen: if it's from the agent, prepend "Agent: ". Otherwise, prepend "Me: ".
+ * In the customer screen: if it's from the agent, translate the message into the customer's detected language and prepend "Agent: ". Otherwise, prepend "Me: ".
  * In the agent screen: if it's from the agent, prepend "Me: ". Otherwise, translate the message and prepend "Customer".
  */
   async function sendMessage(sender, message) {
+    let translatedMessage, translationResponse;
+
     // Do the customer screen
   //  let label = sender == 'Customer' ? '<span color="blue">Me:</span>' : 'Agent:';
+
+    if (sender == 'Agent') {
+      translationResponse = await getTranslation(message, selectedLangCode);
+      translatedMessage = translationResponse.text;
+    }
+    else {
+      translatedMessage = message;
+    }
+
     let label = sender == 'Customer' ? 'Me' : 'Agent';
-    let newMessage = label + ": " + message;
+    let newMessage = label + ": " + translatedMessage;
     setCustomerMessages(prevMessages => [...prevMessages, newMessage]);
 
-    // Do the agent screen
+    // Do the agent screen.
+    // If this is from the customer, translate their message into the agent's language, then update detected language.
 //    label = sender == 'Agent' ? '<span color="red">Me:</span>' : 'Customer:';
-    const translatedText = await getTranslation(message, agentLanguage);
+    if (sender == 'Customer') {
+      translationResponse = await getTranslation(message, agentLangCode);
+      translatedMessage = translationResponse.text;
+      setCustomerLangCode(translationResponse.source_lang);
+      setSelectedLangCode(translationResponse.source_lang);
+    } else {
+      translatedMessage = message;
+    }
+
     label = sender == 'Agent' ? 'Me' : 'Customer';
-    newMessage = label + ": " + message;
+    newMessage = label + ": " + translatedMessage;
     setAgentMessages(prevMessages => [...prevMessages, newMessage]);
   }
 
@@ -73,7 +96,7 @@ export default function Page() {
       <h1>Multilingual Support Chat</h1>
       <div className="main">
         <CustomerScreen messages={customerMessages} sendMessage={sendMessage} />
-        <AgentScreen messages={agentMessages} sendMessage={sendMessage} />
+        <AgentScreen messages={agentMessages} sendMessage={sendMessage} customerLangCode={customerLangCode} selectedLangCode={selectedLangCode} setSelectedLangCode={setSelectedLangCode}/>
       </div>
     </>
   );
@@ -104,17 +127,16 @@ function CustomerScreen({ messages, sendMessage }) {
   );
 }
 
-function AgentScreen({ messages, sendMessage }) {
-  const {detectedLanguage, setDetectedLanguage} = useState('en-US');
+function AgentScreen({ messages, sendMessage, customerLangCode, selectedLangCode, setSelectedLangCode }) {
   const topAreaContent = (
-    <p>Detected language: {detectedLanguage}</p>
+    <p>Customer is speaking {languagesMap.get(customerLangCode)}</p>
   );
 
   return (
     <ChatScreen 
       name='Agent' 
       topAreaContent={topAreaContent} 
-      bottomAreaContent={LanguagesSelect()}
+      bottomAreaContent={<LanguagesSelect selectedLangCode={selectedLangCode} setSelectedLangCode={setSelectedLangCode} />}
       buttonText='Translate and send'
       messages={messages}
       sendMessage={sendMessage}>  
@@ -161,13 +183,17 @@ function ChatScreen({ name, topAreaContent, bottomAreaContent, buttonText, messa
   );
 }
 
-function LanguagesSelect() {
-  const options = languagesMap.map(
+function LanguagesSelect({selectedLangCode, setSelectedLangCode}) {
+  const options = Array.from(languagesMap.entries()).map(
     ([code, name]) => 
       <option key={code} value={code}>{name}</option>
   );
+
   return (
-    <select>
+    <select
+      onChange = {(e) => setSelectedLangCode(e.target.value)}
+      value = {selectedLangCode}
+    >
       {options}
     </select>
   );
