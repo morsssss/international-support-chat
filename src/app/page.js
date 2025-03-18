@@ -129,7 +129,7 @@ function CustomerScreen({ messages, sendMessage }) {
 
 function AgentScreen({ messages, sendMessage, customerLangCode, selectedLangCode, setSelectedLangCode }) {
   const topAreaContent = (
-    <p>Customer is speaking {languagesMap.get(customerLangCode)}</p>
+    <p>Customer is speaking <span className="detectedLang">{languagesMap.get(customerLangCode)}</span></p>
   );
 
   return (
