@@ -41,10 +41,6 @@
   background: #cbc6ef;
 }
 
-.messages > li:nth-child(even) {
-  text-align: right;
-}
-
 .topArea {
   font-weight: 600;
   font-size: 22px;
