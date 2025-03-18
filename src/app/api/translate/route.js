@@ -22,6 +22,6 @@ export async function GET (request) {
   let response = new Response;
   return Response.json({
     text: result.text,
-    source_lang: result.detectedSourceLang
+    source_lang: result.detectedSourceLang.toUpperCase()
   });
 }
